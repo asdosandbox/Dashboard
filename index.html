@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard · Relojes & Mercados</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════ VARIABLES ══════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f5f5f3; --bg2:#fafaf8; --bg3:#ebebea; --panel:#ffffff;
+  --border:#e0e0de; --border2:#c8c8c5;
+  --ink:#181818; --ink2:#5a5a58; --ink3:#9e9e9c;
+  --accent:#2d6a4f; --accent2:#40916c;
+  --up:#2d6a4f; --up-bg:#f0f7f4;
+  --down:#b33a3a; --down-bg:#fdf2f2;
+  --neutral:#6b6b6b; --gold:#a07830;
+  --shadow:rgba(0,0,0,.07);
+  --font-d:'Instrument Serif',Georgia,serif;
+  --font-m:'JetBrains Mono',monospace;
+  --font-s:'Cormorant Garamond',Georgia,serif;
+}
+[data-theme="dark"]{
+  --bg:#111111; --bg2:#161616; --bg3:#1e1e1e; --panel:#1a1a1a;
+  --border:#2a2a2a; --border2:#383838;
+  --ink:#e8e8e8; --ink2:#909090; --ink3:#555555;
+  --accent:#52b788; --accent2:#74c69d;
+  --up:#52b788; --up-bg:#0a1a12;
+  --down:#e05252; --down-bg:#1a0a0a;
+  --neutral:#777777; --gold:#c8a850;
+  --shadow:rgba(0,0,0,.4);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font-m);}
+
+/* ══════════════════ LAYOUT ══════════════════ */
+#app{display:flex;flex-direction:column;height:100vh;}
+.quad{flex:1 1 0;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+.divider-bar{height:1px;flex-shrink:0;background:var(--border);}
+
+/* ══════════════════ TOPBAR ══════════════════ */
+#topbar{height:36px;flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;}
+.tb-left{display:flex;align-items:center;gap:.7rem;}
+.tb-name{font-family:var(--font-m);font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);}
+.tb-right{display:flex;align-items:center;gap:.8rem;}
+.tb-now{font-family:var(--font-m);font-size:.56rem;letter-spacing:.08em;color:var(--ink3);}
+.tb-sync{width:6px;height:6px;border-radius:50%;background:var(--up);animation:pulse 2.5s ease infinite;transition:background .4s;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.theme-btn{
+  display:flex;align-items:center;gap:4px;
+  background:none;border:1px solid var(--border2);color:var(--ink3);
+  font-family:var(--font-m);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:.2rem .55rem;border-radius:2px;cursor:pointer;transition:all .18s;}
+.theme-btn:hover{border-color:var(--ink2);color:var(--ink2);}
+
+/* ══════════════════ QUOTE BAR ══════════════════ */
+#quote-bar{
+  height:28px;flex-shrink:0;background:var(--bg3);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:.7rem;padding:0 1.2rem;overflow:hidden;}
+#quote-text{
+  font-family:var(--font-s);font-style:italic;font-size:.82rem;color:var(--ink2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
+#quote-author{
+  font-family:var(--font-m);font-size:.48rem;letter-spacing:.12em;color:var(--ink3);
+  white-space:nowrap;flex-shrink:0;}
+
+/* ══════════════════ QUAD HEADER ══════════════════ */
+.quad-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:.3rem 1.2rem;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
+.ql-left{display:flex;align-items:center;gap:.7rem;}
+.ql-tag{font-family:var(--font-m);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:600;}
+.ql-right{display:flex;align-items:center;gap:.5rem;}
+.add-btn{display:flex;align-items:center;gap:3px;background:none;border:1px solid var(--border2);
+  color:var(--ink3);font-family:var(--font-m);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.22rem .65rem;border-radius:2px;cursor:pointer;transition:all .16s;}
+.add-btn:hover{border-color:var(--ink2);color:var(--ink2);}
+.add-btn svg{width:8px;height:8px;}
+.global-ctrl{display:flex;align-items:center;gap:.3rem;}
+.gc-label{font-family:var(--font-m);font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);}
+.gc-select{
+  background:var(--bg);border:1px solid var(--border);color:var(--ink2);
+  font-family:var(--font-m);font-size:.52rem;padding:.15rem .35rem;border-radius:2px;
+  cursor:pointer;width:auto;}
+.gc-select:focus{outline:none;border-color:var(--ink2);}
+
+/* ══════════════════ MOON BAR ══════════════════ */
+#moon-bar{
+  height:42px;flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:1rem;padding:0 1.2rem;}
+#moon-left{display:flex;align-items:center;gap:.6rem;flex-shrink:0;}
+#moon-canvas{border-radius:50%;display:block;}
+#moon-info{display:flex;flex-direction:column;gap:1px;}
+#moon-phase-name{font-family:var(--font-m);font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);}
+#moon-sub{font-family:var(--font-m);font-size:.46rem;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;}
+#moon-cycle{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;}
+#moon-track{height:3px;background:var(--bg3);border-radius:2px;position:relative;border:1px solid var(--border);}
+#moon-thumb{
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  width:9px;height:9px;border-radius:50%;
+  background:var(--gold);border:1.5px solid var(--panel);transition:left .6s ease;}
+#moon-labels{display:flex;justify-content:space-between;font-size:.62rem;line-height:1;}
+#moon-right{font-family:var(--font-m);font-size:.47rem;letter-spacing:.08em;color:var(--ink3);
+  flex-shrink:0;text-align:right;white-space:nowrap;line-height:1.7;}
+#moon-right b{color:var(--ink2);font-weight:600;}
+
+/* ══════════════════ CLOCKS GRID ══════════════════ */
+#clocks-body{flex:1;display:grid;overflow:hidden;background:var(--bg2);}
+
+.clock-slot{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:.4rem .4rem .45rem;gap:1px;
+  position:relative;background:var(--bg2);transition:background .12s;overflow:hidden;}
+.clock-slot:hover{background:var(--panel);}
+
+/* SVG clock face */
+.cf-bg  {fill:var(--panel);}
+.cf-ring{fill:none;stroke:var(--border2);stroke-width:.7;}
+.cf-dial{fill:none;stroke:var(--border);stroke-width:2.5;}
+.cf-tick{stroke:var(--border2);stroke-width:.5;}
+.cf-tmaj{stroke:var(--ink3);stroke-width:1.2;}
+.cf-hour{stroke:var(--ink);stroke-width:2.8;stroke-linecap:round;}
+.cf-min {stroke:var(--ink2);stroke-width:1.6;stroke-linecap:round;}
+.cf-sec {stroke:var(--accent);stroke-width:1;stroke-linecap:round;}
+.cf-sect{stroke:var(--accent);stroke-width:1;stroke-linecap:round;opacity:.3;}
+.cf-hub {fill:var(--ink);}
+.cf-hub2{fill:var(--panel);}
+
+.clock-digital{font-family:var(--font-m);font-size:.95rem;font-weight:500;
+  letter-spacing:.04em;color:var(--ink);line-height:1;margin-top:2px;}
+.clock-city{font-family:var(--font-d);font-size:1.15rem;color:var(--ink);text-align:center;line-height:1.15;}
+.clock-country{font-family:var(--font-m);font-size:.5rem;letter-spacing:.16em;color:var(--ink3);text-transform:uppercase;}
+.clock-utc{font-family:var(--font-m);font-size:.5rem;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;}
+.clock-date{font-family:var(--font-s);font-style:italic;font-size:.74rem;color:var(--ink3);}
+.clock-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:3px;}
+.clock-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-family:var(--font-m);font-size:.58rem;letter-spacing:.04em;
+  color:var(--ink2);padding:.12rem .4rem;background:var(--bg3);border-radius:2px;
+  border:1px solid var(--border);}
+.clock-slot[draggable="true"]{cursor:grab;}
+.clock-slot[draggable="true"]:active{cursor:grabbing;}
+.clock-slot.drag-over{outline:2px dashed var(--ink3);outline-offset:-3px;background:var(--bg3)!important;}
+.clock-x{position:absolute;top:3px;right:4px;background:none;border:none;
+  cursor:pointer;color:var(--ink3);font-size:.72rem;padding:2px 4px;transition:color .12s;line-height:1;}
+.clock-x:hover{color:var(--down);}
+.clocks-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.5rem;color:var(--ink3);}
+.clocks-empty-icon{font-size:1.8rem;opacity:.15;}
+.clocks-empty-txt{font-family:var(--font-s);font-style:italic;font-size:.82rem;}
+
+/* ══════════════════ INDICATORS ══════════════════ */
+#ind-scroll{flex:1;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;}
+.ind-grid{flex:1;display:grid;gap:0;min-height:0;}
+.icard{background:var(--panel);border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  border-top:2px solid transparent;display:flex;flex-direction:column;overflow:hidden;
+  position:relative;transition:background .12s;min-height:0;min-width:0;}
+.icard:hover{background:var(--bg2);}
+.icard.up{border-top-color:var(--up);}
+.icard.down{border-top-color:var(--down);}
+.icard.neutral{border-top-color:var(--ink3);}
+
+/* density tiers */
+.ind-grid[data-d="xl"] .icard-head{padding:.75rem .9rem .3rem;}
+.ind-grid[data-d="xl"] .ic-sym{font-size:.5rem;}
+.ind-grid[data-d="xl"] .ic-name{font-size:1.05rem;}
+.ind-grid[data-d="xl"] .ic-badge{font-size:.58rem;padding:.15rem .4rem;}
+.ind-grid[data-d="xl"] .icard-value{padding:.12rem .9rem .45rem;}
+.ind-grid[data-d="xl"] .ic-val{font-size:1.85rem;}
+.ind-grid[data-d="xl"] .ic-pre,.ind-grid[data-d="xl"] .ic-suf{font-size:.75rem;}
+.ind-grid[data-d="xl"] .icard-chart{flex:1;}
+.ind-grid[data-d="xl"] .icard-foot{padding:.35rem .9rem .5rem;}
+.ind-grid[data-d="xl"] .ic-note{font-size:.65rem;max-width:none;}
+.ind-grid[data-d="xl"] .ic-age{font-size:.48rem;}
+
+.ind-grid[data-d="lg"] .icard-head{padding:.6rem .8rem .28rem;}
+.ind-grid[data-d="lg"] .ic-sym{font-size:.48rem;}
+.ind-grid[data-d="lg"] .ic-name{font-size:.95rem;}
+.ind-grid[data-d="lg"] .ic-badge{font-size:.54rem;}
+.ind-grid[data-d="lg"] .icard-value{padding:.08rem .8rem .38rem;}
+.ind-grid[data-d="lg"] .ic-val{font-size:1.45rem;}
+.ind-grid[data-d="lg"] .icard-chart{flex:1;}
+.ind-grid[data-d="lg"] .icard-foot{padding:.28rem .8rem .4rem;}
+.ind-grid[data-d="lg"] .ic-note{max-width:180px;}
+
+.ind-grid[data-d="md"] .icard-head{padding:.45rem .7rem .2rem;}
+.ind-grid[data-d="md"] .ic-sym{font-size:.46rem;}
+.ind-grid[data-d="md"] .ic-name{font-size:.85rem;}
+.ind-grid[data-d="md"] .ic-badge{font-size:.48rem;padding:.1rem .28rem;}
+.ind-grid[data-d="md"] .icard-value{padding:.04rem .7rem .28rem;}
+.ind-grid[data-d="md"] .ic-val{font-size:1.18rem;}
+.ind-grid[data-d="md"] .ic-pre,.ind-grid[data-d="md"] .ic-suf{font-size:.58rem;}
+.ind-grid[data-d="md"] .icard-chart{flex:1;min-height:0;}
+.ind-grid[data-d="md"] .icard-foot{padding:.2rem .7rem .3rem;}
+.ind-grid[data-d="md"] .ic-note{font-size:.56rem;max-width:100px;}
+.ind-grid[data-d="md"] .ic-age{font-size:.42rem;}
+
+.ind-grid[data-d="sm"] .icard-head{padding:.3rem .55rem .14rem;}
+.ind-grid[data-d="sm"] .ic-sym{font-size:.43rem;}
+.ind-grid[data-d="sm"] .ic-name{font-size:.75rem;}
+.ind-grid[data-d="sm"] .ic-badge{font-size:.44rem;padding:.07rem .24rem;}
+.ind-grid[data-d="sm"] .icard-value{padding:.03rem .55rem .2rem;}
+.ind-grid[data-d="sm"] .ic-val{font-size:1rem;}
+.ind-grid[data-d="sm"] .ic-pre,.ind-grid[data-d="sm"] .ic-suf{font-size:.5rem;}
+.ind-grid[data-d="sm"] .icard-chart{flex:1;min-height:0;}
+.ind-grid[data-d="sm"] .icard-foot{padding:.12rem .55rem .22rem;}
+.ind-grid[data-d="sm"] .ic-note{display:none;}
+.ind-grid[data-d="sm"] .ic-age{font-size:.38rem;}
+
+.ind-grid[data-d="xs"] .icard-head{padding:.22rem .45rem .08rem;flex-wrap:wrap;}
+.ind-grid[data-d="xs"] .ic-sym{font-size:.4rem;}
+.ind-grid[data-d="xs"] .ic-name{font-size:.68rem;line-height:1;}
+.ind-grid[data-d="xs"] .ic-badge{font-size:.4rem;padding:.06rem .2rem;}
+.ind-grid[data-d="xs"] .icard-value{padding:.02rem .45rem .15rem;}
+.ind-grid[data-d="xs"] .ic-val{font-size:.88rem;}
+.ind-grid[data-d="xs"] .ic-pre,.ind-grid[data-d="xs"] .ic-suf{font-size:.46rem;}
+.ind-grid[data-d="xs"] .icard-chart{flex:1;min-height:0;}
+.ind-grid[data-d="xs"] .icard-foot{padding:.08rem .45rem .15rem;}
+.ind-grid[data-d="xs"] .ic-note{display:none;}
+.ind-grid[data-d="xs"] .ic-age{font-size:.36rem;}
+
+.icard-head{display:flex;justify-content:space-between;align-items:flex-start;}
+.ic-sym{font-family:var(--font-m);letter-spacing:.18em;color:var(--ink3);text-transform:uppercase;margin-bottom:.1rem;}
+.ic-name{font-family:var(--font-d);color:var(--ink);line-height:1.1;}
+.ic-badge{display:flex;align-items:center;gap:2px;font-family:var(--font-m);font-weight:600;
+  border-radius:2px;white-space:nowrap;flex-shrink:0;}
+.ic-badge.up{color:var(--up);background:var(--up-bg);}
+.ic-badge.down{color:var(--down);background:var(--down-bg);}
+.ic-badge.neutral{color:var(--neutral);background:var(--bg3);}
+.icard-value{display:flex;align-items:baseline;gap:4px;}
+.ic-pre,.ic-suf{font-family:var(--font-m);color:var(--ink3);}
+.ic-val{font-family:var(--font-m);font-weight:500;color:var(--ink);letter-spacing:.03em;line-height:1;}
+.icard-chart{position:relative;overflow:hidden;min-height:36px;}
+.icard-chart canvas{display:block;width:100%;height:100%;}
+.chart-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:.48rem;letter-spacing:.15em;color:var(--ink3);
+  text-transform:uppercase;background:var(--panel);}
+.chart-ov.err{font-family:var(--font-s);font-style:italic;font-size:.6rem;
+  text-transform:none;letter-spacing:0;padding:.3rem;text-align:center;color:var(--ink3);}
+.icard-foot{display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--bg3);flex-shrink:0;}
+.ic-note{font-family:var(--font-s);font-style:italic;color:var(--ink3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ic-age{font-family:var(--font-m);letter-spacing:.08em;color:var(--ink3);}
+.ic-spin{width:6px;height:6px;border-radius:50%;border:1.5px solid var(--border2);
+  border-top-color:var(--accent);animation:spin .7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.icard-actions{position:absolute;top:4px;right:4px;display:flex;gap:2px;opacity:0;transition:opacity .12s;z-index:2;}
+.icard:hover .icard-actions{opacity:1;}
+.icard[draggable="true"]{cursor:grab;}
+.icard[draggable="true"]:active{cursor:grabbing;}
+.icard.drag-over{outline:2px dashed var(--ink3);outline-offset:-2px;}
+/* Market status pill */
+.mkt-status{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-m);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;}
+.mkt-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.mkt-status.open .mkt-dot{background:var(--up);animation:pulse 2.5s ease infinite;}
+.mkt-status.closed .mkt-dot{background:var(--ink3);}
+.mkt-status.always .mkt-dot{background:var(--up);animation:pulse 2.5s ease infinite;}
+.mkt-status.open .mkt-label{color:var(--up);}
+.mkt-status.closed .mkt-label{color:var(--ink3);}
+.mkt-status.always .mkt-label{color:var(--up);}
+.ia-btn{background:var(--panel);border:1px solid var(--border);color:var(--ink3);
+  font-family:var(--font-m);font-size:.46rem;letter-spacing:.06em;padding:2px 5px;
+  border-radius:2px;cursor:pointer;transition:all .1s;}
+.ia-btn:hover{color:var(--ink);}
+.ia-btn.del:hover{color:var(--down);border-color:var(--down);}
+.ind-empty{grid-column:1/-1;padding:3rem;display:flex;flex-direction:column;
+  align-items:center;gap:.6rem;color:var(--ink3);}
+
+/* ══════════════════ MODAL ══════════════════ */
+.modal-ov{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:3px;
+  padding:1.4rem 1.6rem;width:min(500px,95vw);box-shadow:0 20px 50px var(--shadow);
+  animation:slideUp .18s ease;}
+@keyframes slideUp{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.modal-title{font-family:var(--font-d);font-size:1.1rem;color:var(--ink);margin-bottom:1rem;}
+.modal-tabs{display:flex;border:1px solid var(--border);border-radius:2px;overflow:hidden;margin-bottom:.9rem;}
+.mtab{flex:1;background:var(--bg);border:none;color:var(--ink3);font-family:var(--font-m);
+  font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;padding:.34rem;cursor:pointer;transition:all .13s;}
+.mtab.active{background:var(--panel);color:var(--ink);}
+.msec{display:none;} .msec.active{display:block;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.75rem;}
+.form-group{margin-bottom:.75rem;}
+.form-label{display:block;font-family:var(--font-m);font-size:.47rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:.24rem;}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--ink);font-family:var(--font-m);font-size:.76rem;padding:.38rem .55rem;
+  border-radius:2px;outline:none;transition:border-color .16s;}
+input:focus,select:focus,textarea:focus{border-color:var(--ink2);}
+select option{background:var(--panel);color:var(--ink);}
+textarea{resize:vertical;min-height:45px;font-size:.7rem;}
+.form-hint{font-family:var(--font-s);font-style:italic;font-size:.65rem;color:var(--ink3);margin-top:.2rem;}
+.modal-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;
+  padding-top:.8rem;border-top:1px solid var(--border);}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--ink3);
+  font-family:var(--font-m);font-size:.56rem;letter-spacing:.1em;padding:.34rem .85rem;
+  border-radius:2px;cursor:pointer;transition:all .14s;}
+.btn-cancel:hover{border-color:var(--border2);color:var(--ink);}
+.btn-save{background:var(--ink);border:none;color:var(--panel);font-family:var(--font-m);
+  font-size:.56rem;font-weight:600;letter-spacing:.1em;padding:.34rem 1rem;
+  border-radius:2px;cursor:pointer;transition:background .14s;}
+.btn-save:hover{background:var(--ink2);}
+
+/* Search dropdown */
+.search-wrap{position:relative;}
+.search-results{
+  position:absolute;top:100%;left:0;right:0;z-index:300;
+  background:var(--panel);border:1px solid var(--border2);border-top:none;
+  border-radius:0 0 3px 3px;max-height:180px;overflow-y:auto;
+  box-shadow:0 8px 20px var(--shadow);display:none;}
+.search-results.open{display:block;}
+.sr-item{padding:.42rem .65rem;cursor:pointer;display:flex;align-items:center;gap:.55rem;
+  transition:background .1s;border-bottom:1px solid var(--border);}
+.sr-item:last-child{border-bottom:none;}
+.sr-item:hover{background:var(--bg3);}
+.sr-sym{font-family:var(--font-m);font-size:.68rem;font-weight:600;color:var(--ink);min-width:65px;}
+.sr-name{font-family:var(--font-s);font-size:.78rem;color:var(--ink2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.sr-exch{font-family:var(--font-m);font-size:.48rem;color:var(--ink3);margin-left:auto;flex-shrink:0;}
+.sr-loading{padding:.55rem .65rem;font-family:var(--font-s);font-style:italic;font-size:.75rem;color:var(--ink3);}
+.tz-chips{display:none;}/* hidden — replaced by city search */
+
+/* toast */
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:500;
+  background:var(--ink);color:var(--panel);font-family:var(--font-m);font-size:.56rem;
+  letter-spacing:.1em;padding:.38rem 1rem;border-radius:2px;pointer-events:none;
+  animation:fadeIn .2s ease;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="tb-left">
+    <div class="tb-name">Chronos · Market</div>
+  </div>
+  <div class="tb-right">
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+      <span id="theme-icon">○</span>
+      <span id="theme-label">Oscuro</span>
+    </button>
+    <div class="tb-sync" id="sync-dot"></div>
+    <span class="tb-now" id="tb-now"></span>
+  </div>
+</div>
+
+<!-- QUOTE BAR -->
+<div id="quote-bar">
+  <span id="quote-text"></span>
+  <span id="quote-author"></span>
+</div>
+
+<!-- MOON BAR -->
+<div id="moon-bar">
+  <div id="moon-left">
+    <canvas id="moon-canvas" width="34" height="34"></canvas>
+    <div id="moon-info">
+      <div id="moon-phase-name"></div>
+      <div id="moon-sub"></div>
+    </div>
+  </div>
+  <div id="moon-cycle">
+    <div id="moon-track"><div id="moon-thumb"></div></div>
+    <div id="moon-labels"><span>🌑</span><span>🌓</span><span>🌕</span><span>🌗</span><span>🌑</span></div>
+  </div>
+  <div id="moon-right" id="moon-next"></div>
+</div>
+
+<!-- QUAD 1: CLOCKS -->
+<div class="quad">
+  <div class="quad-hdr">
+    <div class="ql-left"><span class="ql-tag">Relojes</span></div>
+    <div class="ql-right">
+      <button class="add-btn" onclick="openClockModal()">
+        <svg viewBox="0 0 10 10" fill="none"><path d="M5 1.5v7M1.5 5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Agregar
+      </button>
+    </div>
+  </div>
+  <div id="clocks-body"></div>
+</div>
+
+<div class="divider-bar"></div>
+
+<!-- QUAD 2: INDICATORS -->
+<div class="quad">
+  <div class="quad-hdr">
+    <div class="ql-left"><span class="ql-tag">Mercados</span></div>
+    <div class="ql-right">
+      <div class="global-ctrl">
+        <span class="gc-label">Gráfico</span>
+        <select class="gc-select" id="g-interval" onchange="applyGlobalInterval()">
+          <option value="1m">1m</option>
+          <option value="5m" selected>5m</option>
+          <option value="15m">15m</option>
+          <option value="1h">1h</option>
+          <option value="1d">1d</option>
+        </select>
+      </div>
+      <div class="global-ctrl">
+        <span class="gc-label">Refresh</span>
+        <select class="gc-select" id="g-refresh" onchange="applyGlobalRefresh()">
+          <option value="15">15s</option>
+          <option value="30" selected>30s</option>
+          <option value="60">1m</option>
+          <option value="300">5m</option>
+        </select>
+      </div>
+      <button class="add-btn" onclick="openIndModal()">
+        <svg viewBox="0 0 10 10" fill="none"><path d="M5 1.5v7M1.5 5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Agregar
+      </button>
+    </div>
+  </div>
+  <div id="ind-scroll"><div class="ind-grid" id="ind-grid"></div></div>
+</div>
+</div>
+
+<!-- MODAL: CLOCK -->
+<div class="modal-ov" id="modal-clk" style="display:none" onclick="if(event.target===this)closeModal('modal-clk')">
+<div class="modal">
+  <div class="modal-title">Agregar Reloj</div>
+  <div class="form-group">
+    <label class="form-label">Buscar ciudad</label>
+    <div class="search-wrap">
+      <input type="text" id="cl-query" placeholder="ej. Bogotá, Tokyo, New York…" autocomplete="off"/>
+      <div class="search-results" id="city-results"></div>
+    </div>
+    <div class="form-hint">Busca y selecciona para autocompletar zona horaria y coordenadas</div>
+  </div>
+  <div class="form-row">
+    <div>
+      <label class="form-label">Nombre mostrado</label>
+      <input type="text" id="cl-city" placeholder="Nombre del reloj" autocomplete="off"/>
+    </div>
+    <div>
+      <label class="form-label">Zona horaria</label>
+      <select id="cl-tz"></select>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modal-clk')">Cancelar</button>
+    <button class="btn-save" onclick="saveClock()">Agregar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: INDICATOR -->
+<div class="modal-ov" id="modal-ind" style="display:none" onclick="if(event.target===this)closeModal('modal-ind')">
+<div class="modal">
+  <div class="modal-title" id="ind-modal-ttl">Nuevo Indicador</div>
+  <div class="modal-tabs">
+    <button class="mtab active" id="tab-btn-search" onclick="switchTab('search')">🔍 Buscar activo</button>
+    <button class="mtab" id="tab-btn-url" onclick="switchTab('url')">🔗 URL personalizada</button>
+  </div>
+
+  <!-- SEARCH TAB -->
+  <div class="msec active" id="msec-search">
+    <div class="form-group">
+      <label class="form-label">Buscar por nombre o símbolo</label>
+      <div class="search-wrap">
+        <input type="text" id="in-query" placeholder="ej. Euro, Dólar, Bitcoin, Apple, Petróleo…" autocomplete="off"/>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <div class="form-hint">Escribe para buscar en Yahoo Finance</div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label class="form-label">Símbolo seleccionado</label>
+        <input type="text" id="in-ticker" placeholder="Se llena al seleccionar" readonly style="background:var(--bg3);cursor:default"/>
+      </div>
+      <div>
+        <label class="form-label">Intervalo de gráfico</label>
+        <select id="in-interval">
+          <option value="1m">1 minuto</option>
+          <option value="5m" selected>5 minutos</option>
+          <option value="15m">15 minutos</option>
+          <option value="1h">1 hora</option>
+          <option value="1d">1 día</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL TAB -->
+  <div class="msec" id="msec-url">
+    <div class="form-group">
+      <label class="form-label">URL del endpoint JSON</label>
+      <input type="text" id="in-url" placeholder="https://api.ejemplo.com/precio" autocomplete="off"/>
+      <div class="form-hint">Retorna JSON. Se usa proxy CORS automático.</div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label class="form-label">Ruta al valor (dot notation)</label>
+        <input type="text" id="in-path" placeholder="ej. data.price"/>
+      </div>
+      <div>
+        <label class="form-label">Ruta al cambio %</label>
+        <input type="text" id="in-chpath" placeholder="ej. data.change"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMON -->
+  <div class="form-row">
+    <div>
+      <label class="form-label">Nombre visible</label>
+      <input type="text" id="in-name" placeholder="ej. Dólar Colombiano" autocomplete="off"/>
+    </div>
+    <div>
+      <label class="form-label">Actualizar cada</label>
+      <select id="in-refresh">
+        <option value="15">15 segundos</option>
+        <option value="30" selected>30 segundos</option>
+        <option value="60">1 minuto</option>
+        <option value="300">5 minutos</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div><label class="form-label">Prefijo</label><input type="text" id="in-pre" placeholder="$ € ¥" maxlength="5"/></div>
+    <div><label class="form-label">Sufijo</label><input type="text" id="in-suf" placeholder="pts bps %" maxlength="6"/></div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Nota / Fuente</label>
+    <textarea id="in-note" placeholder="Descripción, fuente o referencia…"></textarea>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-cancel" onclick="closeModal('modal-ind')">Cancelar</button>
+    <button class="btn-save" onclick="saveInd()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════ STATE ═══════════════ */
+let clocks     = JSON.parse(localStorage.getItem('cm_clocks')     || '[]');
+let indicators = JSON.parse(localStorage.getItem('cm_indicators') || '[]');
+let editIndId  = null, activeTab = 'search';
+let fetchTimers = {}, chartData = {};
+
+/* ═══════════════ THEME ═══════════════ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('cm_theme', t);
+  document.getElementById('theme-icon').textContent  = t==='dark' ? '●' : '○';
+  document.getElementById('theme-label').textContent = t==='dark' ? 'Claro' : 'Oscuro';
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur==='dark' ? 'light' : 'dark');
+  // Re-draw charts with new theme colors
+  requestAnimationFrame(()=>{
+    indicators.forEach(ind => {
+      const d = chartData[ind.id];
+      if(d?.loaded){ const ch=parseFloat(ind.currentChange)||0; drawChart(ind.id,d.prices,d.times,ch>0?'up':ch<0?'down':'neutral'); }
+    });
+  });
+}
+applyTheme(localStorage.getItem('cm_theme') || 'light');
+
+/* ═══════════════ DAILY QUOTE ═══════════════ */
+const QUOTES = [
+  {t:'La disciplina es el puente entre las metas y los logros.',a:'Jim Rohn'},
+  {t:'El éxito es la suma de pequeños esfuerzos repetidos día tras día.',a:'R. Collier'},
+  {t:'No cuentes los días; haz que los días cuenten.',a:'Muhammad Ali'},
+  {t:'La paciencia no es la capacidad de esperar, sino cómo te comportas mientras esperas.',a:'Joyce Meyer'},
+  {t:'Primero, resuelve el problema. Luego, escribe el código.',a:'John Johnson'},
+  {t:'El único modo de hacer un gran trabajo es amar lo que haces.',a:'Steve Jobs'},
+  {t:'En medio de la dificultad reside la oportunidad.',a:'Albert Einstein'},
+  {t:'Lo que no se mide, no se puede mejorar.',a:'Peter Drucker'},
+  {t:'La simplicidad es la sofisticación máxima.',a:'Leonardo da Vinci'},
+  {t:'El mercado es una máquina de transferir dinero del impaciente al paciente.',a:'Warren Buffett'},
+  {t:'Nunca confundas movimiento con acción.',a:'Ernest Hemingway'},
+  {t:'Invierte en ti mismo; es el mejor activo que tendrás.',a:'Benjamin Franklin'},
+  {t:'El riesgo viene de no saber lo que estás haciendo.',a:'Warren Buffett'},
+  {t:'Haz hoy lo que otros no harán; disfruta mañana lo que otros no podrán.',a:'Jerry Rice'},
+  {t:'La constancia es la virtud por la que todas las demás se sostienen.',a:'Séneca'},
+  {t:'No esperes el momento perfecto; toma el momento y hazlo perfecto.',a:'Zoey Sayward'},
+  {t:'La fortuna favorece al audaz.',a:'Virgilio'},
+  {t:'Aprende de ayer, vive para hoy, espera el mañana.',a:'Albert Einstein'},
+  {t:'Quien controla su tiempo, controla su vida.',a:'Peter Drucker'},
+  {t:'El conocimiento es poder, pero el conocimiento aplicado es libertad.',a:'Francis Bacon'},
+];
+function showDailyQuote(){
+  const idx = (new Date().getDate() + new Date().getMonth()*31) % QUOTES.length;
+  const q = QUOTES[idx];
+  const el = document.getElementById('quote-text');
+  const ea = document.getElementById('quote-author');
+  if(el) el.textContent = `"${q.t}"`;
+  if(ea) ea.textContent = `— ${q.a}`;
+}
+
+/* ═══════════════ GLOBAL INTERVAL / REFRESH ═══════════════ */
+function applyGlobalInterval(){
+  const val = document.getElementById('g-interval').value;
+  indicators.forEach(ind => { ind.interval = val; });
+  saveSt('cm_indicators', indicators);
+  // Restart all fetchers with new interval (data refresh)
+  startAllFetchers();
+  // Update per-card selects if modal is open
+  const sel = document.getElementById('in-interval');
+  if(sel) sel.value = val;
+  toast(`Gráfico: ${val} · aplicado a todos`);
+}
+function applyGlobalRefresh(){
+  const val = parseInt(document.getElementById('g-refresh').value) || 30;
+  indicators.forEach(ind => { ind.refreshSec = val; });
+  saveSt('cm_indicators', indicators);
+  startAllFetchers();
+  const sel = document.getElementById('in-refresh');
+  if(sel) sel.value = String(val);
+  toast(`Refresh: ${val}s · aplicado a todos`);
+}
+
+/* ═══════════════ TIMEZONES ═══════════════ */
+const TZ_QUICK = [
+  {l:'UTC',tz:'UTC'},{l:'BOG',tz:'America/Bogota'},{l:'NYC',tz:'America/New_York'},
+  {l:'CHI',tz:'America/Chicago'},{l:'LAX',tz:'America/Los_Angeles'},
+  {l:'MEX',tz:'America/Mexico_City'},{l:'LIM',tz:'America/Lima'},
+  {l:'BUE',tz:'America/Argentina/Buenos_Aires'},{l:'SAO',tz:'America/Sao_Paulo'},
+  {l:'LON',tz:'Europe/London'},{l:'PAR',tz:'Europe/Paris'},{l:'MAD',tz:'Europe/Madrid'},
+  {l:'MOS',tz:'Europe/Moscow'},{l:'DXB',tz:'Asia/Dubai'},{l:'SHA',tz:'Asia/Shanghai'},
+  {l:'TKY',tz:'Asia/Tokyo'},{l:'SGP',tz:'Asia/Singapore'},{l:'SYD',tz:'Australia/Sydney'},
+];
+const ALL_TZ = (() => { try{ return Intl.supportedValuesOf('timeZone'); }catch{ return TZ_QUICK.map(t=>t.tz); } })();
+
+function populateTzSel(){
+  const s = document.getElementById('cl-tz');
+  if(!s) return;
+  s.innerHTML = ALL_TZ.map(z=>`<option value="${z}">${z}</option>`).join('');
+  s.value = 'America/Bogota';
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLOCK ENGINE — pure offset arithmetic (no setInterval drift)
+   ═══════════════════════════════════════════════════════
+   Strategy:
+     1. Compute each TZ's UTC offset in ms (whole seconds only — no TZ has sub-second offset).
+     2. Every RAF frame: localMs = Date.now() + offset
+        → h/m/s/ms all derived from this single value.
+     3. NO setInterval snapshot. No jump-back ever.
+     4. setHand: correct clock formula  x2 = cx+len·sin(a),  y2 = cy-len·cos(a)
+*/
+let tzOffsets = {};   // { 'America/Bogota': offsetMs }
+
+function computeTzOffsetMs(tz) {
+  // Get civil H:M:S in that TZ, reconstruct as UTC epoch, diff with now.
+  const now = Date.now();
+  const d   = new Date(now);
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, hour12: false,
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+  const p = Object.fromEntries(fmt.formatToParts(d).map(x => [x.type, x.value]));
+  const h  = parseInt(p.hour) === 24 ? 0 : parseInt(p.hour);
+  // Reconstruct as UTC (Date.UTC treats args as UTC, not local)
+  const reconstructed = Date.UTC(
+    parseInt(p.year), parseInt(p.month)-1, parseInt(p.day),
+    h, parseInt(p.minute), parseInt(p.second)
+  );
+  // Round to nearest second to strip any sub-ms floating point noise
+  return Math.round((reconstructed - now) / 1000) * 1000;
+}
+
+function refreshTzOffsets() {
+  const seen = new Set();
+  clocks.forEach(c => {
+    if (seen.has(c.tz)) return;
+    seen.add(c.tz);
+    try { tzOffsets[c.tz] = computeTzOffsetMs(c.tz); } catch(e) {}
+  });
+}
+
+/* ─── SVG clock builder ─── */
+const R = 42;
+function buildClockSVG(id) {
+  const ticks = Array.from({length:60}, (_,i) => {
+    const a  = (i/60) * Math.PI*2 - Math.PI/2;
+    const maj = i%5 === 0;
+    const r1 = maj ? R-7 : R-3.5;
+    const x1 = (50 + r1     * Math.cos(a)).toFixed(2);
+    const y1 = (50 + r1     * Math.sin(a)).toFixed(2);
+    const x2 = (50 + (R-1)  * Math.cos(a)).toFixed(2);
+    const y2 = (50 + (R-1)  * Math.sin(a)).toFixed(2);
+    return `<line class="cf-tick${maj?' cf-tmaj':''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 100 100" width="82" height="82" id="svg-${id}">
+    <circle class="cf-dial" cx="50" cy="50" r="${R+1}"/>
+    <circle class="cf-bg"   cx="50" cy="50" r="${R}"/>
+    <circle class="cf-ring" cx="50" cy="50" r="${R}"/>
+    ${ticks}
+    <line class="cf-hour" id="hh-${id}" x1="50" y1="50" x2="50" y2="50"/>
+    <line class="cf-min"  id="mh-${id}" x1="50" y1="50" x2="50" y2="50"/>
+    <line class="cf-sect" id="st-${id}" x1="50" y1="50" x2="50" y2="50"/>
+    <line class="cf-sec"  id="sh-${id}" x1="50" y1="50" x2="50" y2="50"/>
+    <circle class="cf-hub"  cx="50" cy="50" r="3.2"/>
+    <circle class="cf-hub2" cx="50" cy="50" r="1.4"/>
+  </svg>`;
+}
+
+// Correct clock formula: 0°=12, 90°=3, 180°=6, 270°=9
+// x2 = cx + len·sin(a),   y2 = cy − len·cos(a)
+function setHand(elId, deg, cx, cy, len) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const a = deg * Math.PI / 180;
+  el.setAttribute('x2', (cx + len * Math.sin(a)).toFixed(4));
+  el.setAttribute('y2', (cy - len * Math.cos(a)).toFixed(4));
+}
+
+let lastDigSec = {}; // throttle DOM writes for digital display
+
+function tickClocks() {
+  const nowMs = Date.now();
+  clocks.forEach(c => {
+    const off = tzOffsets[c.tz];
+    if (off == null) return;
+
+    const localMs = nowMs + off;              // true civil ms since Unix epoch
+    const dayMs   = ((localMs % 86400000) + 86400000) % 86400000; // ms since midnight
+
+    const hTot = dayMs / 3600000;             // fractional hours
+    const mTot = (dayMs % 3600000) / 60000;   // fractional minutes
+    const sTot = (dayMs % 60000)   / 1000;    // fractional seconds (smooth)
+
+    const hrAngle  = (hTot % 12) / 12  * 360;
+    const minAngle = (mTot / 60)        * 360;
+    const secAngle = (sTot / 60)        * 360;
+    const tailAngle = (secAngle + 180) % 360;
+
+    setHand(`hh-${c.id}`, hrAngle,  50, 50, 20);
+    setHand(`mh-${c.id}`, minAngle, 50, 50, 30);
+    setHand(`sh-${c.id}`, secAngle, 50, 50, 32);
+    setHand(`st-${c.id}`, tailAngle,50, 50, 10);
+
+    // Digital — only update DOM once per second
+    const s = Math.floor(sTot);
+    if (lastDigSec[c.id] !== s) {
+      lastDigSec[c.id] = s;
+      const hh = String(Math.floor(hTot % 24)).padStart(2,'0');
+      const mm = String(Math.floor(mTot)).padStart(2,'0');
+      const ss = String(s).padStart(2,'0');
+      const el = document.getElementById(`dig-${c.id}`);
+      if (el) el.textContent = `${hh}:${mm}:${ss}`;
+    }
+  });
+}
+
+// Topbar clock
+let lastTopbarSec = -1;
+function tickTopbar() {
+  const now = new Date();
+  const s = now.getSeconds();
+  if (s !== lastTopbarSec) {
+    lastTopbarSec = s;
+    document.getElementById('tb-now').textContent =
+      now.toLocaleString('es',{weekday:'short',day:'numeric',month:'short',
+        hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  }
+}
+
+// Master RAF loop
+let rafId = null;
+function startLoop() {
+  if (rafId) cancelAnimationFrame(rafId);
+  const loop = () => { tickClocks(); tickTopbar(); rafId = requestAnimationFrame(loop); };
+  rafId = requestAnimationFrame(loop);
+}
+
+// Refresh TZ offsets every 30 seconds (handles DST without drift)
+refreshTzOffsets();
+setInterval(refreshTzOffsets, 30000);
+
+/* ═══════════════ UTC OFFSET LABEL ═══════════════ */
+function utcLabel(tz) {
+  const off = tzOffsets[tz];
+  if (off == null) return 'UTC';
+  const totalMin = Math.round(off / 60000);
+  const sign = totalMin >= 0 ? '+' : '−';
+  const h = String(Math.floor(Math.abs(totalMin) / 60)).padStart(2,'0');
+  const m = String(Math.abs(totalMin) % 60).padStart(2,'0');
+  return m === '00' ? `UTC${sign}${parseInt(h)}` : `UTC${sign}${h}:${m}`;
+}
+
+/* ═══════════════ SEASON ═══════════════ */
+function getSeason(lat, tzDate) {
+  // tzDate: a Date whose UTC fields represent the local date in that TZ
+  const mo = tzDate.getUTCMonth(); // 0-11
+  const dy = tzDate.getUTCDate();
+  let s;
+  if ((mo===2&&dy>=20)||mo===3||mo===4||(mo===5&&dy<21))      s = ['Primavera','🌸','Otoño','🍂'];
+  else if ((mo===5&&dy>=21)||mo===6||mo===7||(mo===8&&dy<23)) s = ['Verano','☀️','Invierno','❄️'];
+  else if ((mo===8&&dy>=23)||mo===9||mo===10||(mo===11&&dy<21))s= ['Otoño','🍂','Primavera','🌸'];
+  else                                                          s = ['Invierno','❄️','Verano','☀️'];
+  return lat >= 0 ? {name:s[0],icon:s[1]} : {name:s[2],icon:s[3]};
+}
+
+/* ═══════════════ TEMPERATURE ═══════════════ */
+async function fetchTemp(c) {
+  if (c.lat == null || c.lng == null) return;
+  try {
+    const r = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lng}&current=temperature_2m,weathercode`,
+      {signal: AbortSignal.timeout(8000)}
+    );
+    if (!r.ok) return;
+    const d = await r.json();
+    const t = d?.current?.temperature_2m;
+    if (t == null) return;
+    const idx = clocks.findIndex(x => x.id === c.id);
+    if (idx !== -1) { clocks[idx].lastTemp = t; saveSt('cm_clocks', clocks); }
+    const el = document.getElementById(`temp-${c.id}`);
+    if (el) el.textContent = `${t.toFixed(1)}°C`;
+  } catch(e) {}
+}
+
+/* ═══════════════ RENDER CLOCKS ═══════════════ */
+function relayoutClocks(){
+  const body = document.getElementById('clocks-body');
+  const n = clocks.length;
+  if(!n){ body.style.display='flex'; return; }
+  const avW = body.offsetWidth, avH = body.offsetHeight;
+  const minW = 130, minH = 155;
+  let bestCols = 1;
+  for(let c=1; c<=n; c++){
+    const rows = Math.ceil(n/c);
+    if(avW/c >= minW && avH/rows >= minH) bestCols = c;
+  }
+  if(bestCols < 1) bestCols = Math.min(n, Math.max(1, Math.floor(avW/minW)));
+  const rows = Math.ceil(n/bestCols);
+  body.style.gridTemplateColumns = `repeat(${bestCols},1fr)`;
+  body.style.gridTemplateRows    = `repeat(${rows},1fr)`;
+  body.style.display = 'grid';
+}
+
+function renderClocks() {
+  const body = document.getElementById('clocks-body');
+  body.innerHTML = '';
+  if (!clocks.length) {
+    body.style.display = 'flex';
+    body.innerHTML = `<div class="clocks-empty">
+      <div class="clocks-empty-icon">◷</div>
+      <div class="clocks-empty-txt">Agrega relojes de ciudades del mundo</div></div>`;
+    return;
+  }
+  const now = new Date();
+  clocks.forEach(c => {
+    const slot = document.createElement('div');
+    slot.className = 'clock-slot';
+    slot.id = `slot-${c.id}`;
+    let dateStr='', utcStr='', seasonHtml='', countryHtml='';
+    try {
+      dateStr = new Intl.DateTimeFormat('es',{timeZone:c.tz,weekday:'short',day:'numeric',month:'short'}).format(now);
+      utcStr  = utcLabel(c.tz);
+      if(c.country) countryHtml = `<div class="clock-country">${c.country}</div>`;
+      if(c.lat != null){
+        const parts = new Intl.DateTimeFormat('en-CA',{timeZone:c.tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+        const pp = Object.fromEntries(parts.map(x=>[x.type,x.value]));
+        const localDt = new Date(Date.UTC(parseInt(pp.year),parseInt(pp.month)-1,parseInt(pp.day)));
+        const sea = getSeason(c.lat, localDt);
+        seasonHtml = `<span class="clock-badge">${sea.icon} ${sea.name}</span>`;
+      }
+    } catch(e){}
+    const tempText = c.lastTemp != null ? `🌡 ${c.lastTemp.toFixed(1)}°C` : '🌡 —';
+    slot.innerHTML = `
+      <button class="clock-x" onclick="removeClock('${c.id}')" title="Eliminar">✕</button>
+      ${buildClockSVG(c.id)}
+      <div class="clock-digital" id="dig-${c.id}">--:--:--</div>
+      <div class="clock-city">${c.city}</div>
+      ${countryHtml}
+      <div class="clock-utc" id="utc-${c.id}">${utcStr}</div>
+      <div class="clock-date" id="dt-${c.id}">${dateStr}</div>
+      <div class="clock-meta">
+        <span class="clock-badge" id="temp-${c.id}">${tempText}</span>
+        ${seasonHtml}
+      </div>`;
+    body.appendChild(slot);
+  });
+  refreshTzOffsets();
+  relayoutClocks();
+  clocks.forEach(c => fetchTemp(c));
+  requestAnimationFrame(initClockDrag);
+}
+
+// Update date/UTC/season labels every minute
+setInterval(() => {
+  const now = new Date();
+  clocks.forEach(c => {
+    try {
+      const el = document.getElementById(`dt-${c.id}`);
+      if (el) el.textContent = new Intl.DateTimeFormat('es', {
+        timeZone:c.tz, weekday:'short', day:'numeric', month:'short'
+      }).format(now);
+      const eu = document.getElementById(`utc-${c.id}`);
+      if (eu) eu.textContent = utcLabel(c.tz);
+    } catch(e) {}
+  });
+}, 60000);
+
+function removeClock(id) {
+  clocks = clocks.filter(c => c.id !== id);
+  delete lastDigSec[id];
+  saveSt('cm_clocks', clocks);
+  renderClocks();
+  toast('Reloj eliminado');
+}
+
+/* ═══════════════ MOON PHASE ═══════════════ */
+function moonPhase() {
+  // Reference: known new moon Jan 6 2000 18:14 UTC
+  const REF_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const SYNODIC = 29.53058867 * 86400 * 1000; // ms
+  const elapsed = Date.now() - REF_NEW_MOON;
+  let phase = ((elapsed % SYNODIC) + SYNODIC) % SYNODIC / SYNODIC; // 0→1
+  const age  = phase * 29.53;      // days since new moon
+  const illum = (1 - Math.cos(phase * 2 * Math.PI)) / 2; // 0=new, 1=full
+
+  const phases = [
+    {min:0,     max:.033,  name:'Luna Nueva',         emoji:'🌑'},
+    {min:.033,  max:.233,  name:'Creciente Cóncava',  emoji:'🌒'},
+    {min:.233,  max:.283,  name:'Cuarto Creciente',   emoji:'🌓'},
+    {min:.283,  max:.483,  name:'Creciente Gibosa',   emoji:'🌔'},
+    {min:.483,  max:.533,  name:'Luna Llena',          emoji:'🌕'},
+    {min:.533,  max:.733,  name:'Menguante Gibosa',    emoji:'🌖'},
+    {min:.733,  max:.783,  name:'Cuarto Menguante',    emoji:'🌗'},
+    {min:.783,  max:.967,  name:'Menguante Cóncava',  emoji:'🌘'},
+    {min:.967,  max:1,     name:'Luna Nueva',          emoji:'🌑'},
+  ];
+  const info = phases.find(p => phase >= p.min && phase < p.max) || phases[0];
+
+  // Days until next full moon and new moon
+  const daysToFull = phase < .5 ? (.5 - phase) * 29.53 : (1.5 - phase) * 29.53;
+  const daysToNew  = (1 - phase) * 29.53;
+
+  return {phase, age, illum, ...info, daysToFull, daysToNew};
+}
+
+function drawMoon(phase, illum) {
+  const canvas = document.getElementById('moon-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, r = W/2 - 2;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  ctx.clearRect(0, 0, W, H);
+
+  // Dark side (always full disc first)
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = isDark ? '#1a2035' : '#bcc8dc';
+  ctx.fill();
+
+  // Lit portion using ellipse on the right half
+  // phase 0=new, 0.5=full, waxing: right side lit, waning: left side lit
+  const waxing = phase < 0.5;
+  const f = waxing ? phase*2 : (phase - 0.5)*2; // 0→1 within half-cycle
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(waxing ? cx : 0, 0, cx, H);
+  ctx.clip();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = isDark ? '#dce8ff' : '#fff9e0';
+  ctx.fill();
+  ctx.restore();
+
+  // The terminator ellipse (x-axis scales between -r and +r)
+  const ex = r * Math.abs(1 - 2*f);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(waxing ? 0 : cx, 0, cx, H);
+  ctx.clip();
+  // ellipse: if waxing, terminator covers left half with ellipse that bulges left
+  ctx.beginPath();
+  if (f < 0.5) {
+    // lit sliver on right: dark ellipse covering most of disc
+    ctx.ellipse(cx, cy, ex, r, 0, -Math.PI/2, Math.PI/2);
+    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2);
+  } else {
+    // lit more than half: bright ellipse covering most of disc
+    ctx.ellipse(cx, cy, ex, r, 0, Math.PI/2, -Math.PI/2);
+    ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2);
+  }
+  ctx.fillStyle = isDark
+    ? (f >= 0.5 ? '#dce8ff' : '#1a2035')
+    : (f >= 0.5 ? '#fff9e0' : '#bcc8dc');
+  ctx.fill();
+  ctx.restore();
+
+  // Rim
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.strokeStyle = isDark ? 'rgba(150,170,220,.3)' : 'rgba(100,120,160,.25)';
+  ctx.lineWidth = .8;
+  ctx.stroke();
+}
+
+function updateMoonBar() {
+  const m = moonPhase();
+  document.getElementById('moon-phase-name').textContent = `${m.emoji} ${m.name}`;
+  document.getElementById('moon-sub').textContent =
+    `Día ${m.age.toFixed(1)} · ${Math.round(m.illum*100)}% iluminación`;
+  document.getElementById('moon-right').innerHTML =
+    `Llena en <b>${m.daysToFull.toFixed(0)}d</b><br>Nueva en <b>${m.daysToNew.toFixed(0)}d</b>`;
+  document.getElementById('moon-thumb').style.left = `${m.phase * 100}%`;
+  drawMoon(m.phase, m.illum);
+}
+
+/* ═══════════════ CITY SEARCH (Open-Meteo geocoding) ═══════════════ */
+let citySearchTimer = null, selectedCity = null;
+
+function initCitySearch() {
+  const input = document.getElementById('cl-query');
+  if (!input) return;
+  input.addEventListener('input', e => {
+    clearTimeout(citySearchTimer);
+    const q = e.target.value.trim();
+    if (q.length < 2) { closeCityResults(); return; }
+    citySearchTimer = setTimeout(() => doCitySearch(q), 320);
+  });
+  input.addEventListener('blur', () => setTimeout(closeCityResults, 200));
+}
+
+async function doCitySearch(q) {
+  const box = document.getElementById('city-results');
+  box.innerHTML = '<div class="sr-loading">Buscando…</div>';
+  box.classList.add('open');
+  try {
+    const r = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=es&format=json`,
+      {signal: AbortSignal.timeout(6000)}
+    );
+    if (!r.ok) throw new Error('network');
+    const d = await r.json();
+    const results = d?.results || [];
+    if (!results.length) { box.innerHTML = '<div class="sr-loading">Sin resultados</div>'; return; }
+    box.innerHTML = '';
+    results.forEach(city => {
+      const item = document.createElement('div');
+      item.className = 'sr-item';
+      const tz = city.timezone || '';
+      const country = city.country || '';
+      const admin = city.admin1 ? `, ${city.admin1}` : '';
+      item.innerHTML = `
+        <span class="sr-sym">${city.name}</span>
+        <span class="sr-name">${country}${admin}</span>
+        <span class="sr-exch">${tz.split('/')[1]||tz}</span>`;
+      item.onclick = () => {
+        selectedCity = {
+          name: city.name, tz: tz,
+          lat: city.latitude, lng: city.longitude, country
+        };
+        document.getElementById('cl-query').value = `${city.name}, ${country}${admin}`;
+        document.getElementById('cl-city').value = city.name;
+        // Auto-set timezone dropdown
+        const sel = document.getElementById('cl-tz');
+        if (tz) sel.value = tz;
+        closeCityResults();
+      };
+      box.appendChild(item);
+    });
+  } catch(e) {
+    box.innerHTML = '<div class="sr-loading">Error de conexión</div>';
+  }
+}
+
+function closeCityResults() {
+  const b = document.getElementById('city-results');
+  if (b) { b.classList.remove('open'); b.innerHTML = ''; }
+}
+
+function openClockModal() {
+  selectedCity = null;
+  populateTzSel();
+  ['cl-query','cl-city'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  closeCityResults();
+  document.getElementById('modal-clk').style.display = 'flex';
+  setTimeout(() => { const el = document.getElementById('cl-query'); if(el) el.focus(); }, 80);
+  initCitySearch();
+}
+
+async function saveClock() {
+  const city = document.getElementById('cl-city').value.trim();
+  const tz   = document.getElementById('cl-tz').value;
+  if (!city) { document.getElementById('cl-city').focus(); return; }
+
+  const c = { id: 'c'+Date.now(), city, tz, lastTemp: null,
+    lat: selectedCity?.lat ?? null, lng: selectedCity?.lng ?? null,
+    country: selectedCity?.country ?? '' };
+
+  // If no coordinates from search, try geocoding the city name
+  if (c.lat == null) {
+    try {
+      const r = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=es`,
+        {signal: AbortSignal.timeout(5000)}
+      );
+      const d = await r.json();
+      const res = d?.results?.[0];
+      if (res) { c.lat = res.latitude; c.lng = res.longitude; }
+    } catch(e) {}
+  }
+
+  clocks.push(c);
+  saveSt('cm_clocks', clocks);
+  renderClocks();
+  closeModal('modal-clk');
+  toast(`Reloj agregado: ${city}`);
+}
+
+/* ═══════════════ RELAYOUT INDICATORS ═══════════════ */
+function relayout(){
+  const n = indicators.length;
+  if(!n) return;
+  const grid = document.getElementById('ind-grid');
+  const scr  = document.getElementById('ind-scroll');
+  const avW  = scr.offsetWidth, avH = scr.offsetHeight;
+  let bestCols = 1;
+  for(let c = 1; c <= Math.min(n,8); c++){
+    const rows = Math.ceil(n/c);
+    if(avW/c >= 155 && avH/rows >= 88){ bestCols = c; }
+  }
+  if(bestCols===1 && n>2) bestCols = Math.min(n, Math.max(1, Math.floor(avW/155)));
+  const rows = Math.ceil(n/bestCols);
+  const d = n<=2?'xl':n<=4?'lg':n<=6?'md':n<=9?'sm':'xs';
+  grid.style.gridTemplateColumns = `repeat(${bestCols},1fr)`;
+  grid.style.gridTemplateRows    = `repeat(${rows},1fr)`;
+  grid.setAttribute('data-d', d);
+  requestAnimationFrame(()=>{
+    indicators.forEach(ind=>{
+      const cd = chartData[ind.id];
+      if(cd?.loaded){ const ch=parseFloat(ind.currentChange)||0; drawChart(ind.id,cd.prices,cd.times,ch>0?'up':ch<0?'down':'neutral'); }
+    });
+  });
+}
+
+/* ═══════════════ RENDER INDICATORS ═══════════════ */
+function renderIndicators(){
+  const grid = document.getElementById('ind-grid');
+  grid.innerHTML = '';
+  if(!indicators.length){
+    grid.innerHTML = `<div class="ind-empty">
+      <div class="ind-empty-icon">📊</div>
+      <div style="font-family:var(--font-s);font-style:italic;font-size:.85rem;color:var(--ink3)">
+        Añade indicadores para seguimiento en tiempo real
+      </div></div>`;
+    grid.style.cssText='grid-template-columns:1fr;grid-template-rows:1fr;';
+    return;
+  }
+  indicators.forEach(ind=>{
+    const cp = ind.currentPrice, ch = parseFloat(ind.currentChange)||0;
+    const trend = ch>0?'up':ch<0?'down':'neutral';
+    const card = document.createElement('div');
+    card.className = `icard ${trend}`;
+    card.id = `icard-${ind.id}`;
+    card.innerHTML = `
+      <div class="icard-actions">
+        <button class="ia-btn" onclick="openEditInd('${ind.id}')">editar</button>
+        <button class="ia-btn del" onclick="deleteInd('${ind.id}')">✕</button>
+      </div>
+      <div class="icard-head">
+        <div>
+          <div class="ic-sym">${ind.ticker||ind.symbol||''}</div>
+          <div class="ic-name">${ind.name}</div>
+        </div>
+        <div class="ic-badge ${trend}">${ch>0?'▲':ch<0?'▼':'—'} ${Math.abs(ch).toFixed(2)}%</div>
+      </div>
+      <div class="icard-value">
+        ${ind.prefix?`<span class="ic-pre">${ind.prefix}</span>`:''}
+        <span class="ic-val">${cp!=null?fmtVal(cp):'…'}</span>
+        ${ind.suffix?`<span class="ic-suf">${ind.suffix}</span>`:''}
+      </div>
+      <div class="icard-chart">
+        <canvas id="chart-${ind.id}" style="width:100%;height:100%;display:block;"></canvas>
+        <div class="chart-ov" id="ov-${ind.id}">Cargando…</div>
+      </div>
+      <div class="icard-foot">
+        <span class="ic-note">${ind.note||ind.ticker||''}</span>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div class="ic-spin" id="spin-${ind.id}"></div>
+          <span class="ic-age"></span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+    if(chartData[ind.id]?.loaded){
+      const {prices,times}=chartData[ind.id];
+      drawChart(ind.id,prices,times,trend);
+    }
+  });
+  requestAnimationFrame(()=>{
+    relayout();
+    initIndDrag();
+    indicators.forEach(ind=>injectMarketStatus(ind.id));
+  });
+}
+
+/* ═══════════════ DATA FETCHING ═══════════════ */
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+];
+let proxyIdx=0;
+
+async function fetchJ(url){
+  for(let i=0;i<PROXIES.length;i++){
+    try{
+      const r=await fetch(PROXIES[(proxyIdx+i)%PROXIES.length](url),{signal:AbortSignal.timeout(9000)});
+      if(!r.ok) continue;
+      const t=await r.text();
+      return JSON.parse(t);
+    }catch(e){continue;}
+  }
+  throw new Error('proxy fail');
+}
+
+function getPath(obj,path){
+  return path.split('.').reduce((a,k)=>a==null?null:isNaN(k)?a[k]:a[parseInt(k)],obj);
+}
+
+async function fetchIndicatorData(ind){
+  const card=document.getElementById(`icard-${ind.id}`);
+  if(!card) return;
+  const spin=document.getElementById(`spin-${ind.id}`);
+  if(spin) spin.style.display='block';
+  try{
+    let price=null,change=null,prices=[],times=[];
+    if(ind.type==='ticker'||!ind.type){
+      const range=ind.interval==='1d'?'1mo':ind.interval==='1h'?'5d':'1d';
+      const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ind.ticker)}?interval=${ind.interval||'5m'}&range=${range}`;
+      const data=await fetchJ(url);
+      const res=data?.chart?.result?.[0];
+      if(!res) throw new Error('No data');
+      const q=res.indicators?.quote?.[0];
+      const meta=res.meta;
+      prices=(q?.close||[]).filter(v=>v!=null);
+      const rawT=(res.timestamp||[]).filter((_,i)=>(q?.close||[])[i]!=null);
+      times=rawT.map(t=>new Date(t*1000));
+      price=meta?.regularMarketPrice??prices[prices.length-1];
+      const prev=meta?.chartPreviousClose||meta?.previousClose||prices[0];
+      change=prev?((price-prev)/prev*100):null;
+    } else {
+      const data=await fetchJ(ind.url);
+      price=ind.valuePath?getPath(data,ind.valuePath):null;
+      change=ind.changePath?getPath(data,ind.changePath):null;
+    }
+    if(price==null) throw new Error('No price');
+    const idx=indicators.findIndex(i=>i.id===ind.id);
+    if(idx!==-1){
+      indicators[idx].currentPrice=price;
+      indicators[idx].currentChange=change;
+      indicators[idx].lastUpdated=Date.now();
+    }
+    chartData[ind.id]={prices,times,loaded:true};
+    updateCardUI(ind.id,price,change,prices,times);
+    if(spin) spin.style.display='none';
+  }catch(e){
+    if(spin) spin.style.display='none';
+    const ov=document.getElementById(`ov-${ind.id}`);
+    if(ov){ov.className='chart-ov err';ov.textContent='Sin datos · '+e.message.slice(0,35);}
+  }
+}
+
+function updateCardUI(id,price,change,prices,times){
+  const card=document.getElementById(`icard-${id}`);
+  if(!card) return;
+  const ind=indicators.find(i=>i.id===id);
+  if(!ind) return;
+  const ch=parseFloat(change)||0;
+  const trend=ch>0?'up':ch<0?'down':'neutral';
+  card.className=`icard ${trend}`;
+  const v=card.querySelector('.ic-val'); if(v) v.textContent=fmtVal(price);
+  const b=card.querySelector('.ic-badge');
+  if(b){b.className=`ic-badge ${trend}`;b.innerHTML=`${ch>0?'▲':ch<0?'▼':'—'} ${Math.abs(ch).toFixed(2)}%`;}
+  const age=card.querySelector('.ic-age'); if(age) age.textContent='hace 0s';
+  startAgeTimer(id);
+  drawChart(id,prices,times,trend);
+  injectMarketStatus(id);
+  requestAnimationFrame(relayout);
+}
+
+function startAgeTimer(id){
+  const ind=indicators.find(i=>i.id===id);
+  if(!ind) return;
+  clearInterval(ind._ageTimer);
+  ind._ageTimer=setInterval(()=>{
+    const card=document.getElementById(`icard-${id}`);
+    if(!card) return;
+    const el=card.querySelector('.ic-age');
+    if(!el) return;
+    const s=Math.round((Date.now()-(ind.lastUpdated||Date.now()))/1000);
+    el.textContent=s<60?`hace ${s}s`:`hace ${Math.floor(s/60)}m`;
+  },1000);
+}
+
+function startAllFetchers(){
+  Object.values(fetchTimers).forEach(t=>clearInterval(t));
+  fetchTimers={};
+  indicators.forEach(ind=>{
+    fetchIndicatorData(ind);
+    const ms=(parseInt(ind.refreshSec)||30)*1000;
+    fetchTimers[ind.id]=setInterval(()=>fetchIndicatorData(ind),ms);
+  });
+}
+
+function deleteInd(id){
+  clearInterval(fetchTimers[id]); delete fetchTimers[id]; delete chartData[id];
+  const ind=indicators.find(i=>i.id===id);
+  if(ind&&ind._ageTimer) clearInterval(ind._ageTimer);
+  indicators=indicators.filter(i=>i.id!==id);
+  saveSt('cm_indicators',indicators);
+  renderIndicators();
+  toast('Indicador eliminado');
+}
+
+/* ═══════════════ CANVAS CHART ═══════════════ */
+function drawChart(id,prices,times,trend){
+  const canvas=document.getElementById(`chart-${id}`);
+  if(!canvas||!prices||prices.length<2) return;
+  const dpr=window.devicePixelRatio||1;
+  const cW=canvas.offsetWidth, cH=canvas.offsetHeight;
+  if(!cW||!cH) return;
+  canvas.width=cW*dpr; canvas.height=cH*dpr;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const PAD={t:4,r:5,b:14,l:46};
+  const pw=cW-PAD.l-PAD.r, ph=cH-PAD.t-PAD.b;
+  if(pw<=0||ph<=0) return;
+  const min=Math.min(...prices), max=Math.max(...prices);
+  const rng=max-min||Math.abs(max)*0.001||1;
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const panelBg = isDark?'#1a1a1a':'#ffffff';
+  const gridC   = isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.05)';
+  const labelC  = isDark?'#555555':'#9e9e9c';
+  // Line color by trend
+  const lineCol = trend==='up'
+    ? (isDark?'#52b788':'#2d6a4f')
+    : trend==='down'
+    ? (isDark?'#e05252':'#b33a3a')
+    : (isDark?'#777':'#6b6b6b');
+
+  // Background
+  ctx.fillStyle=panelBg; ctx.fillRect(0,0,cW,cH);
+
+  // Grid lines + Y labels
+  ctx.strokeStyle=gridC; ctx.lineWidth=.5;
+  ctx.font=`${7.5}px 'JetBrains Mono',monospace`;
+  ctx.fillStyle=labelC; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let i=0;i<=3;i++){
+    const v=min+(rng*i/3);
+    const y=PAD.t+ph-(i/3)*ph;
+    ctx.beginPath(); ctx.moveTo(PAD.l,y); ctx.lineTo(PAD.l+pw,y); ctx.stroke();
+    ctx.fillText(fmtShort(v), PAD.l-3, y);
+  }
+
+  const toX = i => PAD.l + (i/(prices.length-1))*pw;
+  const toY = v => PAD.t + ph - ((v-min)/rng)*ph;
+
+  // Gradient fill
+  const g = ctx.createLinearGradient(0, PAD.t, 0, PAD.t+ph);
+  // Parse hex to rgb for gradient stops
+  const rgb = hexToRgb(lineCol);
+  g.addColorStop(0,   `rgba(${rgb},${isDark?'.22':'.18'})`);
+  g.addColorStop(0.6, `rgba(${rgb},${isDark?'.08':'.06'})`);
+  g.addColorStop(1,   `rgba(${rgb},0)`);
+
+  ctx.beginPath();
+  ctx.moveTo(toX(0), PAD.t+ph);
+  prices.forEach((p,i)=>ctx.lineTo(toX(i),toY(p)));
+  ctx.lineTo(toX(prices.length-1), PAD.t+ph);
+  ctx.closePath();
+  ctx.fillStyle=g; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  prices.forEach((p,i)=>i===0?ctx.moveTo(toX(i),toY(p)):ctx.lineTo(toX(i),toY(p)));
+  ctx.strokeStyle=lineCol; ctx.lineWidth=1.4; ctx.lineJoin='round'; ctx.stroke();
+
+  // Last dot
+  const lx=toX(prices.length-1), ly=toY(prices[prices.length-1]);
+  ctx.beginPath(); ctx.arc(lx,ly,2.5,0,Math.PI*2);
+  ctx.fillStyle=lineCol; ctx.fill();
+  ctx.strokeStyle=panelBg; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Time labels
+  if(times&&times.length>=2){
+    ctx.fillStyle=labelC; ctx.font=`${7}px 'JetBrains Mono',monospace`;
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText(fmtTime(times[0]), PAD.l, cH-PAD.b+2);
+    ctx.textAlign='right';
+    ctx.fillText(fmtTime(times[times.length-1]), PAD.l+pw, cH-PAD.b+2);
+  }
+
+  const ov=document.getElementById(`ov-${id}`);
+  if(ov) ov.style.display='none';
+}
+function hexToRgb(hex){
+  const h=hex.replace('#','');
+  const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  return `${r},${g},${b}`;
+}
+function fmtTime(d){ return d?d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',hour12:false}):''; }
+function fmtShort(v){
+  if(Math.abs(v)>=1e6) return(v/1e6).toFixed(1)+'M';
+  if(Math.abs(v)>=1e4) return(v/1000).toFixed(0)+'K';
+  if(Math.abs(v)>=100)  return v.toFixed(1);
+  return v.toFixed(4).replace(/\.?0+$/,'');
+}
+function fmtVal(v){
+  const n=parseFloat(v); if(isNaN(n)) return v||'—';
+  if(Math.abs(n)>=1e9) return(n/1e9).toFixed(2)+'B';
+  if(Math.abs(n)>=1e6) return(n/1e6).toFixed(2)+'M';
+  if(Math.abs(n)>=10000) return n.toLocaleString('es',{maximumFractionDigits:2});
+  if(Math.abs(n)>=100)   return n.toFixed(2);
+  return n.toFixed(4);
+}
+
+/* ═══════════════ INDICATOR SEARCH (Yahoo Finance) ═══════════════ */
+let searchTimer=null, selectedTicker='';
+document.getElementById('in-query').addEventListener('input', e=>{
+  clearTimeout(searchTimer);
+  const q=e.target.value.trim();
+  if(q.length<2){ closeSearchResults(); return; }
+  searchTimer=setTimeout(()=>doSearch(q),380);
+});
+document.getElementById('in-query').addEventListener('blur',()=>{
+  setTimeout(closeSearchResults,200);
+});
+
+async function doSearch(q){
+  const box=document.getElementById('search-results');
+  box.innerHTML='<div class="sr-loading">Buscando…</div>';
+  box.classList.add('open');
+  try{
+    const url=`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0&listsCount=0`;
+    const data=await fetchJ(url);
+    const quotes=(data?.quotes||[]).filter(r=>r.symbol&&r.quoteType!=='INDEX_FUTURE');
+    if(!quotes.length){ box.innerHTML='<div class="sr-loading">Sin resultados</div>'; return; }
+    box.innerHTML='';
+    quotes.slice(0,8).forEach(r=>{
+      const item=document.createElement('div');
+      item.className='sr-item';
+      item.innerHTML=`<span class="sr-sym">${r.symbol}</span><span class="sr-name">${r.shortname||r.longname||''}</span><span class="sr-exch">${r.exchDisp||r.exchange||''}</span>`;
+      item.onclick=()=>{
+        selectedTicker=r.symbol;
+        document.getElementById('in-ticker').value=r.symbol;
+        if(!document.getElementById('in-name').value)
+          document.getElementById('in-name').value=r.shortname||r.longname||r.symbol;
+        document.getElementById('in-query').value=`${r.symbol} — ${r.shortname||r.longname||''}`;
+        closeSearchResults();
+      };
+      box.appendChild(item);
+    });
+  }catch(e){ box.innerHTML='<div class="sr-loading">Error al buscar</div>'; }
+}
+function closeSearchResults(){
+  const b=document.getElementById('search-results');
+  b.classList.remove('open'); b.innerHTML='';
+}
+
+/* ═══════════════ MODALS ═══════════════ */
+function openIndModal(){
+  editIndId=null;
+  document.getElementById('ind-modal-ttl').textContent='Nuevo Indicador';
+  ['in-query','in-ticker','in-url','in-path','in-chpath','in-name','in-pre','in-suf','in-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('in-interval').value='5m';
+  document.getElementById('in-refresh').value='30';
+  selectedTicker=''; closeSearchResults();
+  switchTab('search');
+  document.getElementById('modal-ind').style.display='flex';
+  setTimeout(()=>document.getElementById('in-query').focus(),80);
+}
+
+function openEditInd(id){
+  const ind=indicators.find(i=>i.id===id);
+  if(!ind) return;
+  editIndId=id;
+  document.getElementById('ind-modal-ttl').textContent='Editar Indicador';
+  selectedTicker=ind.ticker||'';
+  document.getElementById('in-query').value=ind.ticker||'';
+  document.getElementById('in-ticker').value=ind.ticker||'';
+  document.getElementById('in-url').value=ind.url||'';
+  document.getElementById('in-path').value=ind.valuePath||'';
+  document.getElementById('in-chpath').value=ind.changePath||'';
+  document.getElementById('in-name').value=ind.name||'';
+  document.getElementById('in-pre').value=ind.prefix||'';
+  document.getElementById('in-suf').value=ind.suffix||'';
+  document.getElementById('in-note').value=ind.note||'';
+  document.getElementById('in-interval').value=ind.interval||'5m';
+  document.getElementById('in-refresh').value=String(ind.refreshSec||30);
+  switchTab(ind.type==='url'?'url':'search');
+  document.getElementById('modal-ind').style.display='flex';
+}
+
+function switchTab(tab){
+  activeTab=tab;
+  document.querySelectorAll('.msec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`msec-${tab}`).classList.add('active');
+  document.getElementById(`tab-btn-${tab}`).classList.add('active');
+}
+
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+function saveInd(){
+  const name=document.getElementById('in-name').value.trim();
+  if(!name){ document.getElementById('in-name').focus(); return; }
+  const isEdit=!!editIndId;
+  const base=isEdit?(indicators.find(i=>i.id===editIndId)||{}):{id:'i'+Date.now()};
+  const ticker=(activeTab==='search'?document.getElementById('in-ticker').value.trim():'')||selectedTicker;
+  const ind={
+    ...base, name,
+    type: activeTab==='url'?'url':'ticker',
+    ticker: ticker.toUpperCase(),
+    url:     document.getElementById('in-url').value.trim(),
+    valuePath:  document.getElementById('in-path').value.trim(),
+    changePath: document.getElementById('in-chpath').value.trim(),
+    prefix:  document.getElementById('in-pre').value.trim(),
+    suffix:  document.getElementById('in-suf').value.trim(),
+    note:    document.getElementById('in-note').value.trim(),
+    interval: document.getElementById('in-interval').value,
+    refreshSec: parseInt(document.getElementById('in-refresh').value)||30,
+    currentPrice:base.currentPrice||null,
+    currentChange:base.currentChange||null,
+  };
+  if(isEdit){
+    const idx=indicators.findIndex(i=>i.id===editIndId);
+    if(idx!==-1) indicators[idx]=ind;
+    clearInterval(fetchTimers[editIndId]); delete chartData[editIndId];
+  } else {
+    indicators.push(ind);
+  }
+  saveSt('cm_indicators',indicators);
+  renderIndicators();
+  fetchIndicatorData(ind);
+  fetchTimers[ind.id]=setInterval(()=>fetchIndicatorData(ind),ind.refreshSec*1000);
+  closeModal('modal-ind');
+  toast(isEdit?'Indicador actualizado':'Indicador agregado: '+name);
+  editIndId=null;
+}
+
+/* ═══════════════ UTILS ═══════════════ */
+function saveSt(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .28s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},2200);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-ov').forEach(m=>m.style.display='none');
+  if(e.key==='Enter'){
+    if(document.getElementById('modal-clk').style.display==='flex') saveClock();
+    if(document.getElementById('modal-ind').style.display==='flex') saveInd();
+  }
+});
+window.addEventListener('resize',()=>{ relayout(); relayoutClocks(); });
+
+/* ═══════════════ CONNECTION MONITOR ═══════════════ */
+function updateConnDot(){
+  const dot = document.getElementById('sync-dot');
+  if(!dot) return;
+  dot.style.background = navigator.onLine ? 'var(--up)' : 'var(--down)';
+}
+window.addEventListener('online',  updateConnDot);
+window.addEventListener('offline', updateConnDot);
+updateConnDot();
+
+/* ═══════════════ MARKET STATUS ═══════════════ */
+function getMarketStatus(ticker){
+  if(!ticker) return {cls:'closed',label:'—'};
+  const t = ticker.toUpperCase();
+  // Crypto: always open
+  if(/BTC|ETH|XRP|LTC|ADA|SOL|DOGE|USDT|MATIC/.test(t))
+    return {cls:'always', label:'24 / 7'};
+  const now = new Date();
+  const dow  = now.getUTCDay();   // 0=Sun,6=Sat
+  const utcM = now.getUTCHours()*60 + now.getUTCMinutes();
+  // Forex pairs =X: Mon 00:00 – Fri 22:00 UTC (roughly)
+  if(t.endsWith('=X')){
+    if(dow===6) return {cls:'closed',label:'Cerrado'};
+    if(dow===0 && utcM<22*60) return {cls:'closed',label:'Cerrado'};
+    if(dow===5 && utcM>=22*60) return {cls:'closed',label:'Cerrado'};
+    return {cls:'open',label:'Abierto'};
+  }
+  // Futures =F: approx NYSE futures hours Mon–Fri 14:00–21:15 UTC
+  if(t.endsWith('=F')){
+    if(dow===0||dow===6) return {cls:'closed',label:'Cerrado'};
+    const isOpen = utcM>=14*60 && utcM<21*60+15;
+    return {cls: isOpen?'open':'closed', label: isOpen?'Abierto':'Cerrado'};
+  }
+  // US equities: Mon–Fri 13:30–20:00 UTC
+  if(dow===0||dow===6) return {cls:'closed',label:'Cerrado'};
+  const isOpen = utcM>=13*60+30 && utcM<20*60;
+  return {cls: isOpen?'open':'closed', label: isOpen?'Abierto':'Cerrado'};
+}
+
+function injectMarketStatus(id){
+  const ind = indicators.find(i=>i.id===id);
+  if(!ind) return;
+  const card = document.getElementById(`icard-${id}`);
+  if(!card) return;
+  const st = getMarketStatus(ind.ticker);
+  let el = card.querySelector('.mkt-status');
+  if(!el){
+    // insert before ic-age in icard-foot
+    const foot = card.querySelector('.icard-foot');
+    if(!foot) return;
+    el = document.createElement('div');
+    el.className = 'mkt-status';
+    foot.insertBefore(el, foot.firstChild);
+  }
+  el.className = `mkt-status ${st.cls}`;
+  el.innerHTML = `<span class="mkt-dot"></span><span class="mkt-label">${st.label}</span>`;
+}
+
+/* Refresh market status every minute */
+setInterval(()=>{ indicators.forEach(ind=>injectMarketStatus(ind.id)); }, 60000);
+
+/* ═══════════════ DRAG-REORDER: CLOCKS ═══════════════ */
+let dragSrcClock = null;
+function initClockDrag(){
+  document.querySelectorAll('.clock-slot').forEach(slot=>{
+    slot.setAttribute('draggable','true');
+    slot.addEventListener('dragstart', e=>{
+      dragSrcClock = slot.id.replace('slot-','');
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>slot.style.opacity='.4',0);
+    });
+    slot.addEventListener('dragend', e=>{
+      slot.style.opacity='';
+      document.querySelectorAll('.clock-slot').forEach(s=>s.classList.remove('drag-over'));
+    });
+    slot.addEventListener('dragover', e=>{
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      slot.classList.add('drag-over');
+    });
+    slot.addEventListener('dragleave', ()=>slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e=>{
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      const targetId = slot.id.replace('slot-','');
+      if(dragSrcClock && dragSrcClock!==targetId){
+        const si = clocks.findIndex(c=>c.id===dragSrcClock);
+        const ti = clocks.findIndex(c=>c.id===targetId);
+        if(si>-1&&ti>-1){
+          const [item]=clocks.splice(si,1); clocks.splice(ti,0,item);
+          saveSt('cm_clocks',clocks);
+          renderClocks();
+        }
+      }
+    });
+  });
+}
+
+/* ═══════════════ DRAG-REORDER: INDICATORS ═══════════════ */
+let dragSrcInd = null;
+function initIndDrag(){
+  document.querySelectorAll('.icard').forEach(card=>{
+    card.setAttribute('draggable','true');
+    card.addEventListener('dragstart', e=>{
+      dragSrcInd = card.id.replace('icard-','');
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>card.style.opacity='.4',0);
+    });
+    card.addEventListener('dragend', ()=>{
+      card.style.opacity='';
+      document.querySelectorAll('.icard').forEach(c=>c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e=>{
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', ()=>card.classList.remove('drag-over'));
+    card.addEventListener('drop', e=>{
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const targetId = card.id.replace('icard-','');
+      if(dragSrcInd && dragSrcInd!==targetId){
+        const si = indicators.findIndex(i=>i.id===dragSrcInd);
+        const ti = indicators.findIndex(i=>i.id===targetId);
+        if(si>-1&&ti>-1){
+          const [item]=indicators.splice(si,1); indicators.splice(ti,0,item);
+          saveSt('cm_indicators',indicators);
+          renderIndicators();
+        }
+      }
+    });
+  });
+}
+
+/* ═══════════════ BOOT ═══════════════ */
+if(!clocks.length){
+  clocks=[
+    {id:'c1',city:'Bogotá',    tz:'America/Bogota',    lat:4.711, lng:-74.072},
+    {id:'c2',city:'Nueva York',tz:'America/New_York',  lat:40.713,lng:-74.006},
+    {id:'c3',city:'Londres',   tz:'Europe/London',     lat:51.508,lng:-0.128},
+  ];
+  saveSt('cm_clocks',clocks);
+}
+if(!indicators.length){
+  indicators=[
+    {id:'i1',name:'Dólar / Peso Col.',type:'ticker',ticker:'USDCOP=X',interval:'5m',refreshSec:30,prefix:'$',suffix:'',note:'Forex',currentPrice:null,currentChange:null},
+    {id:'i2',name:'Euro / Dólar',     type:'ticker',ticker:'EURUSD=X', interval:'5m',refreshSec:30,prefix:'',suffix:'',note:'Forex',currentPrice:null,currentChange:null},
+    {id:'i3',name:'Bitcoin',          type:'ticker',ticker:'BTC-USD',  interval:'5m',refreshSec:60,prefix:'$',suffix:'',note:'Crypto',currentPrice:null,currentChange:null},
+    {id:'i4',name:'Petróleo WTI',     type:'ticker',ticker:'CL=F',     interval:'5m',refreshSec:60,prefix:'$',suffix:'/bbl',note:'Futuros',currentPrice:null,currentChange:null},
+  ];
+  saveSt('cm_indicators',indicators);
+}
+
+renderClocks();
+renderIndicators();
+startLoop();
+startAllFetchers();
+updateMoonBar();
+showDailyQuote();
+// Refresh moon hourly, temps every 10 min
+setInterval(updateMoonBar, 3600000);
+setInterval(() => clocks.forEach(c => fetchTemp(c)), 600000);
+</script>
+</body>
+</html>
